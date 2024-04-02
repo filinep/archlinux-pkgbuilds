@@ -1,6 +1,6 @@
 # Maintainer: Filipe Nepomuceno <filinep@gmail.com>
-pkgname=filinep-st-git
-pkgver=0.9.1.r1174.404b8a0
+pkgname=filinep-st
+pkgver=0.9.1.1174.404b8a0
 pkgrel=1
 pkgdesc="My personal build of st."
 arch=(x86_64)
@@ -10,24 +10,31 @@ depends=(ttf-dejavu-nerd)
 makedepends=(git)
 provides=(st)
 conflicts=(st)
-source=("git+$url")
-md5sums=('SKIP')
+source=("git+$url"
+	terminfo.patch)
+md5sums=('SKIP'
+	'SKIP')
 
 pkgver() {
-	cd "${_pkgname}"
+	cd "${pkgname}"
 	printf "0.9.1.%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
+prepare() {
+	patch -d "$pkgname" -p 0 <terminfo.patch
+}
+
 build() {
-	cd filinep-st
+	cd $pkgname
 	make X11NC=/usr/include/X11 X11LIB=/usr/lib/X11
 }
 
 package() {
-	cd filinep-st
+	cd $pkgname
 	mkdir -p "${pkgdir}/opt/${pkgname}"
 	cp -rf * "${pkgdir}/opt/${pkgname}"
 	make PREFIX=/usr DESTDIR="${pkgdir}" install
 	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
-	install -Dm644 README.md "${pkgdir}/usr/share/doc/${pkgname}/README"
+	install -Dm644 README "${pkgdir}/usr/share/doc/${pkgname}/README"
+	install -Dm644 st.info "${pkgdir}/usr/share/${pkgname}"
 }
